@@ -10,6 +10,7 @@ class PrettyYAMLDumper(yaml.dumper.SafeDumper):
 
 	def __init__(self, *args, **kws):
 		self.pyaml_force_embed = kws.pop('force_embed', False)
+		kws.pop('length_limit', None) # unused
 		return super(PrettyYAMLDumper, self).__init__(*args, **kws)
 
 	def represent_odict(dumper, data):
@@ -64,6 +65,10 @@ PrettyYAMLDumper.add_representer(OrderedDict, PrettyYAMLDumper.represent_odict)
 
 class UnsafePrettyYAMLDumper(PrettyYAMLDumper):
 
+	def __init__(self, *args, **kws):
+		self.pyaml_length_limit = kws.pop('length_limit', 120)
+		return super(UnsafePrettyYAMLDumper, self).__init__(*args, **kws)
+
 	def choose_scalar_style(self):
 		if self.event.style != 'plain':
 			return super(UnsafePrettyYAMLDumper, self).choose_scalar_style()
@@ -102,7 +107,7 @@ class UnsafePrettyYAMLDumper(PrettyYAMLDumper):
 			style = 'literal'
 			if '\n' in data[:-1]:
 				for line in data.splitlines():
-					if len(line) > 120: break
+					if len(line) > dumper.pyaml_length_limit: break
 				else: style = '|'
 
 		return yaml.representer.ScalarNode('tag:yaml.org,2002:str', data, style=style)
@@ -136,10 +141,10 @@ def dump_add_vspacing(buff, vspacing):
 	buff.write(''.join(result).encode('utf-8'))
 
 
-def dump(data, dst=unicode, safe=False, force_embed=False, vspacing=None):
+def dump(data, dst=unicode, safe=False, force_embed=False, length_limit=120, vspacing=None):
 	buff = io.BytesIO()
 	Dumper = PrettyYAMLDumper if safe else UnsafePrettyYAMLDumper
-	Dumper = ft.partial(Dumper, force_embed=force_embed)
+	Dumper = ft.partial(Dumper, force_embed=force_embed, length_limit=length_limit)
 	yaml.dump_all([data], buff, Dumper=Dumper, default_flow_style=False, encoding='utf-8')
 
 	if vspacing is not None:
