@@ -147,3 +147,5 @@ def dump(data, dst=unicode, safe=False, force_embed=False, vspacing=None):
 		return buff.getvalue().decode('utf-8')
 	else:
 		dst.write(buff.getvalue())
+
+__all__ = [PrettyYAMLDumper, UnsafePrettyYAMLDumper, dump_add_vspacing, dump]
