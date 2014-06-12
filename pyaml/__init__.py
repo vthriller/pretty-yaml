@@ -41,8 +41,10 @@ class PrettyYAMLDumper(yaml.dumper.SafeDumper):
 	def anchor_node(self, node, hint=list()):
 		if node in self.anchors:
 			if self.anchors[node] is None and not self.pyaml_force_embed:
-				self.anchors[node] = self.generate_anchor(node)\
-					if not hint else '{}'.format(
+				if not hint:
+					self.anchors[node] = self.generate_anchor(node)
+				else:
+					self.anchors[node] = unicode(
 						self.pyaml_transliterate(
 							'_-_'.join(map(op.attrgetter('value'), hint)) ) )
 		else:
@@ -63,8 +65,10 @@ PrettyYAMLDumper.add_representer(OrderedDict, PrettyYAMLDumper.represent_odict)
 class UnsafePrettyYAMLDumper(PrettyYAMLDumper):
 
 	def choose_scalar_style(self):
-		return super(UnsafePrettyYAMLDumper, self).choose_scalar_style()\
-			if self.event.style != 'plain' else ("'" if ' ' in self.event.value else None)
+		if self.event.style != 'plain':
+			return super(UnsafePrettyYAMLDumper, self).choose_scalar_style()
+		else:
+			return "'" if ' ' in self.event.value else None
 
 	def expect_block_sequence(self):
 		self.increase_indent(flow=False, indentless=False)
