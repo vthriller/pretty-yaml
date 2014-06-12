@@ -105,7 +105,7 @@ class UnsafePrettyYAMLDumper(PrettyYAMLDumper):
 		style = 'plain'
 		if '\n' in data or (data and data[0] in '!&*'):
 			style = 'literal'
-			if '\n' in data[:-1]:
+			if '\n' in data[:-1] and dumper.pyaml_length_limit is not None:
 				for line in data.splitlines():
 					if len(line) > dumper.pyaml_length_limit: break
 				else: style = '|'
